@@ -11,7 +11,7 @@
 Класс `SysEventLog`:
 
 * позволяет записать информацию из Аксапты в [Windows Event Log](https://docs.microsoft.com/en-us/windows/win32/wes/windows-event-log)
-* скрывает преобразования между .net и Х++
+* выполняет преобразования между .net и Х++
 * предлагает 5 публичных статических методов:
 
   * `info`
