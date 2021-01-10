@@ -10,12 +10,27 @@ Formatversion: 1
   SOURCE #SysEventLog_Demo
     #static void SysEventLog_Demo(Args _args)
     #{;
-    #
-    #    SysEventLog::info('Hello world!');
-    #    SysEventLog::warning(strfmt('%1 warning message', funcname()));
-    #    SysEventLog::error(strfmt('%1 error message', funcname()));
+    #    SysEventLog::info('SysEventLog demo message.');
     #}
   ENDSOURCE
+
+***Element: FTM
+
+; Microsoft Dynamics MENUITEM : SysEventLog_DemoOnServer unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #SysEventLog_DemoOnServer
+    Type: 3
+    PROPERTIES
+      Name                #SysEventLog_DemoOnServer
+      ObjectType          #Job
+      Object              #SysEventLog_Demo
+      RunOn               #Server
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
 
 ***Element: CLS
 
@@ -43,7 +58,6 @@ Formatversion: 1
         #//
         #class SysEventLog
         #{
-        #    #define.defaulEventId(999)
         #}
       ENDSOURCE
       SOURCE #compName
@@ -80,7 +94,7 @@ Formatversion: 1
         #}
       ENDSOURCE
       SOURCE #error
-        #public static void error(str event, int eventId = #defaulEventId)
+        #public static void error(str event, int eventId = 0)
         #{;
         #    SysEventLog::write(event, Exception::Error, eventId);
         #}
@@ -114,123 +128,136 @@ Formatversion: 1
         #}
       ENDSOURCE
       SOURCE #info
-        #public static void info(str event, int eventId = #defaulEventId)
+        #public static void info(str event, int eventId = 0)
         #{;
         #    SysEventLog::write(event, Exception::Info, eventId);
+        #}
+      ENDSOURCE
+      SOURCE #messageHeader
+        #protected static str messageHeader()
+        #{
+        #    Session session = new Session();
+        #
+        #    str ret = strfmt('User: %1, Company: %2, %3%4@%5, Session type: %6, Run on: %7 (%8.%9)\n----\n\n',
+        #                    curUserId(), curExt(),
+        #                    'AOS$', SysEventLog::getAOSInstance(), session.AOSName(), session.clientKind(),
+        #                    SysEventLog::source(), xInfo::releaseVersion(), xInfo::buildNo());
+        #
+        #    return ret;
         #}
       ENDSOURCE
       SOURCE #source
         #// уникальный идентификатор источника для EventLog
         #// источники не могут повторяться даже в разных log-файлах
-        #protected static str source()
-        #{
-        #    str source      = '';
-        #    int strategy    = 0;
-        #    str logFile     = "Application";
-        #
-        #    new InteropPermission(InteropKind::ClrInterop).assert();
-        #
-        #    if( strategy == 0 )
-        #        source = SysEventLog::sourceInstalled();
-        #
-        #    if( strategy == 1 )
-        #        source = SysEventLog::sourceSpecified();
-        #
-        #    // if( strategy == 2 )
-        #    //     source = ...
-        #
-        #    if( source == '' )
-        #        throw error(Error::wrongUseOfFunction(funcname()));
-        #
-        #    if( !System.Diagnostics.EventLog::SourceExists(source) )
-        #        throw error(strfmt(@'
-        #На компьютере %1 не зарегистрирован источник для метода System.Diagnostics.EventLog::WriteEntry (source=%2).
-        #
-        #Внимание! источник должен быть создан заранее пользователем с привилегиями администратора.
-        #Перед первой записью в Windows EventLog должна быть некоторая задержка после создания источника.
-        #
-        #Для создания источника на компьютере %1 выполните с привилегиями администратора либо команду PowerShell:
-        #
-        #PS> [System.Diagnostics.EventLog]::CreateEventSource("%2", "%3")
-        #
-        #либо команду в CMD:
-        #
-        #c:\> eventcreate /ID 1 /T INFORMATION /SO "%2" /L "%3" /D log-created
-        #', SysEventLog::compName(), source, logFile));
-        #
-        #    return source;
-        #}
-      ENDSOURCE
-      SOURCE #sourceInstalled
-        #// эти источники создаются инсталятором во время установки
+        #//
+        #// эти источники были созданы инсталятором во время установки Аксапты
         #// поэтому использовать эти источники достаточно безопасно
         #// хоть по ним не очень удобно фильтовать и к ним не очень удобно аттачить задачи
-        #protected static str sourceInstalled()
+        #protected static str source()
         #{
-        #    str eventSource;
-        #
-        #    switch( clientKind() )
-        #    {
-        #        case ClientType::Client:
-        #        case ClientType::COMObject:
-        #            eventSource = 'Dynamics Client';
-        #            break;
-        #
-        #        case ClientType::Server:
-        #        case ClientType::WorkerThread:
-        #            eventSource = strfmt('Dynamics Server %1', SysEventLog::getAOSInstance());
-        #            break;
-        #    }
-        #
-        #    return eventSource;
-        #}
-      ENDSOURCE
-      SOURCE #sourceSpecified
-        #// эта стратегия распределения сообщений по источникам удобнее для фильтрации
-        #// но эти источники нужно создать вручную пользователем с привилегиями администратора
-        #//
-        #// получаются источники, похожие на:
-        #// AOS$01-Client
-        #// AOS$01-Server
-        #// AOS$01-WorkerThread
-        #// AOS$01-COMObject
-        #//
-        #protected static str sourceSpecified()
-        #{
-        #    str eventSource = strfmt('AOS$%1-%2', SysEventLog::getAOSInstance(), clientKind());
+        #    boolean onServer    = new Object().objectOnServer();
+        #    str     eventSource = onServer ? strfmt('Dynamics Server %1', SysEventLog::getAOSInstance()) : 'Dynamics Client';
         #
         #    return eventSource;
         #}
       ENDSOURCE
       SOURCE #warning
-        #public static void warning(str event, int eventId = #defaulEventId)
+        #public static void warning(str event, int eventId = 0)
         #{;
         #    SysEventLog::write(event, Exception::Warning, eventId);
         #}
       ENDSOURCE
       SOURCE #write
-        #// записывает строку в системный Windows Event Log
-        #public static void write(str event, Exception exception = Exception::Info, int eventId = #defaulEventId, str _eventSource = '')
+        #// записывает строку в Windows Event Log
+        #public static void write(
+        #    str       eventMessage,
+        #    Exception exception     = Exception::Info,
+        #    int       eventId       = 0,
+        #    str       eventSource   = '',
+        #    str       eventLogFile  = '')
         #{
-        #    str eventSource = _eventSource ? _eventSource : SysEventLog::source();
-        #    System.Diagnostics.EventLogEntryType eventLogEntryType = SysEventLog::entryType(exception);
-        #    str message = strfmt(@'%1, User:%2, Company:%3
-        #----
+        #    str messageHeder = SysEventLog::messageHeader();
+        #    str source       = eventSource ? eventSource : SysEventLog::source();
+        #    str logFile      = eventLogFile ? eventLogFile : 'Application';
         #
-        #%4', SysEventLog::sourceSpecified(), curUserId(), curExt(), event);
+        #    System.Diagnostics.EventLogEntryType eventLogEntryType;
         #
         #    new InteropPermission(InteropKind::ClrInterop).assert();
         #
-        #    System.Diagnostics.EventLog::WriteEntry(eventSource, message, eventLogEntryType, eventId);
+        #    eventLogEntryType = SysEventLog::entryType(exception);
+        #
+        #    if( Session::isInRoleAdmin() )
+        #    {
+        #        // и проверка, и создание источника (source) требуют привилегий администратора
+        #        if( !System.Diagnostics.EventLog::SourceExists(source) )
+        #        {
+        #            System.Diagnostics.EventLog::CreateEventSource(source, logFile);
+        #            sleep(1000);    // после создания, источник доступен не сразу
+        #        }
+        #    }
+        #
+        #    /*
+        #
+        #    В следующей строке кода может произойти CLR-ошибка 'ClrObject static method invocation error',
+        #    если текущая сессия стартовала без привелегий администратора
+        #    и источник (source) для метода System.Diagnostics.EventLog::WriteEntry не зарегистирован в реестре.
+        #
+        #    Причины, по которым не делается никаких попыток замаскировать или перехватить ошибку:
+        #
+        #    1. в аксапте в случае ошибки внутри транзакции оператор try/catch пропустит все catch внутри транзакции.
+        #       данный метод записи в EventLog с огромной вероятностью будет вызван именно внутри транзакции.
+        #       поэтому try/catch в этом методе ничего не гарантирует.
+        #
+        #    2. source может быть зарегистрирован на компьютере между любыми двумя вызовами данного метода,
+        #       а проверка на существование источника требует прав локального администратора.
+        #       поэтому, не имея прав локального администратора, приходится делать "прыжок веры",
+        #       полагаясь на то, что источник существует.
+        #
+        #    3. ошибка в следующей строке достаточно специфична и хорошо заметна даже рядовыми пользователями.
+        #       поэтому эту ошибку быстро доведут до сведения разработчика, который легко сможет найти источник ошибки в этом методе.
+        #       а в этом методе добравшегося ждут эти комментарии. welcome!
+        #
+        #    */
+        #
+        #    System.Diagnostics.EventLog::WriteEntry(source, messageHeder + eventMessage, eventLogEntryType, eventId);
+        #
+        #    /*
+        #
+        #    На компьютере, где предыдущая строка выдала ошибку,
+        #    нужно хотя бы один раз выполнить с привилегиями администратора (runAsAdministrator):
+        #
+        #    либо Job в AOT (https://github.com/mazzy-ax/SysEventLog/blob/main/ax2009/Examples/Job_SysEventLog_Demo.xpp)
+        #
+        #        SysEventLog_Demo(args)
+        #
+        #    либо команду PowerShell
+        #
+        #        PS> [System.Diagnostics.EventLog]::CreateEventSource('%source%', 'Application')
+        #
+        #    либо команду в CMD
+        #
+        #        c:\> eventcreate /ID 1 /T INFORMATION /SO "%source%" /L "Application" /D log-created
+        #
+        #    Ключевое требование: с привелегиями администратора!
+        #
+        #    Список зарегистированных источников можно посмотреть в реестре по адресу:
+        #    HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\EventLog\Application
+        #
+        #    */
         #}
       ENDSOURCE
       SOURCE #writeOnServer
-        #// записывает строку в системный Windows Event Log
+        #// записывает строку в Windows Event Log
         #// всегда выполняется на сервере
         #//
-        #public server static void writeOnServer(str event, Exception exception = Exception::Info, int eventId = #defaulEventId, str eventSource = '')
+        #public server static void writeOnServer(
+        #    str       eventMessage,
+        #    Exception exception     = Exception::Info,
+        #    int       eventId       = 0,
+        #    str       eventSource   = '',
+        #    str       eventLogFile  = '')
         #{;
-        #    SysEventLog::write(event, exception, eventId, eventSource);
+        #    SysEventLog::write(eventMessage, exception, eventId, eventSource, eventLogFile);
         #}
       ENDSOURCE
     ENDMETHODS
@@ -254,6 +281,13 @@ Formatversion: 1
       UTILOBJECTID 0
       NODETYPE 215
       NAME #SysEventLog_Demo
+    ENDNODE
+    BEGINNODE
+      FILETYPE 0
+      UTILTYPE 3
+      UTILOBJECTID 0
+      NODETYPE 296
+      NAME #SysEventLog_DemoOnServer
     ENDNODE
     BEGINNODE
       FILETYPE 0

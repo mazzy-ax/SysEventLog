@@ -1,9 +1,24 @@
 # SysEventLog Changelog
 
-see also [Releases on GitHub](https://github.com/mazzy-ax/SysEventLog/releases)
+See also [Releases](https://github.com/mazzy-ax/SysEventLog/releases) and [Unreleased](https://github.com/mazzy-ax/SysEventLog/compare/1.0.0...main) on GitHub.
 
-## [Unreleased](https://github.com/mazzy-ax/SysEventLog/compare/1.0.0...main)
+## [1.1.0](https://github.com/mazzy-ax/SysEventLog/tree/1.0.0...1.1.0) &ndash; 2021-01-10
 
-## [1.0.0](https://github.com/mazzy-ax/SysEventLog/tree/1.0.0) - 2021-01-05
+Изменено:
+
+* `enventId` по умолчанию стал равен 0
+* код, который формирует заголовок сообщения, выделен в отдельный метод `messageHeader`
+* если метод `write` определяет, что у сессии есть привилегии локального администратора, то теперь метод будет проверять существование источника и будет создавать новый источник при необходимости
+* демонстрационный job теперь содержит только одно сообщение, чтобы этот же job можно было использовать для регистрации источника (source)
+
+Добавлено:
+
+* добавлен menuItem, который позволяет запускать демонстрационный job на сервере. это позволяет и продемонстрировать работу класса, и зарегистрировать новый источник на сервере прямо из Аксапты
+
+Удалено:
+
+* в классе SysEventLog осталась одна стратегия для выбора источника сообщений &ndash; безопасная. Подробная информация об окружении перенесена в заголовок сообщения. Методы `sourceIntalled` и `sourceSpecified` удалены. Программист может исправить поведение класса так, как считает нужным.
+
+## [1.0.0](https://github.com/mazzy-ax/SysEventLog/tree/1.0.0) &ndash; 2021-01-05
 
 * Initial release

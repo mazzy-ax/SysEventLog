@@ -1,0 +1,23 @@
+﻿Exportfile for AOT version 1.0 or later
+Formatversion: 1
+
+***Element: FTM
+
+; Microsoft Dynamics AX MENUITEM : SysEventLog_DemoOnServer unloaded
+; --------------------------------------------------------------------------------
+  VERSION 1
+  
+  MENUITEM #SysEventLog_DemoOnServer
+    Type: 3
+    PROPERTIES
+      Name                #SysEventLog_DemoOnServer
+      ObjectType          #Job
+      Object              #SysEventLog_Demo
+      RunOn               #Server
+      Origin              #{7B01A299-B32C-4E02-8C43-3E16EF6E08DA}
+    ENDPROPERTIES
+    
+  ENDMENUITEM
+  
+
+***Element: END

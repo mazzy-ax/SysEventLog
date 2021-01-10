@@ -1,7 +1,4 @@
 ﻿static void SysEventLog_Demo(Args _args)
-{;
-
-    SysEventLog::info('Hello world!');
-    SysEventLog::warning(strfmt('%1 warning message', funcname()));
-    SysEventLog::error(strfmt('%1 error message', funcname()));
+{
+    SysEventLog::info('SysEventLog demo message.');
 }
