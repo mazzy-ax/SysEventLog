@@ -6,18 +6,19 @@
 [ax2012]:ax2012
 [ax4]:ax4
 
-[SysEventLog][project] &ndash; это класс-обёртка над [System.Diagnostics.EventLog.WriteEntry](https://docs.microsoft.com/en-us/previous-versions/windows/desktop/sidebar/system-diagnostics-eventlog-writeentry), написанный на X++ в [Microsoft Dynamics AX 2009][ax2009], [Microsoft Dynamics AX 2012][ax2012] и [Axapta 4.0][ax4].
+[SysEventLog][project] &ndash; это класс-обёртка над [System.Diagnostics.EventLog.WriteEntry](https://docs.microsoft.com/en-us/previous-versions/windows/desktop/sidebar/system-diagnostics-eventlog-writeentry). Класс написан на X++ в [Microsoft Dynamics AX 2009][ax2009], [Microsoft Dynamics AX 2012][ax2012] и [Axapta 4.0][ax4].
 
-Класс `SysEventLog` позволяет записать из X++ информацию в [Windows Event Log](https://docs.microsoft.com/en-us/windows/win32/wes/windows-event-log).
-Класс скрывает преобразования между .net и x++, а также предлагает приемлемые для Аксапты значения по умолчанию.
+Класс `SysEventLog`:
 
-Класс предлагает программисту 5 публичных статических методов:
+* позволяет записать информацию из Аксапты в [Windows Event Log](https://docs.microsoft.com/en-us/windows/win32/wes/windows-event-log)
+* скрывает преобразования между .net и Х++
+* предлагает 5 публичных статических методов:
 
-* `info`
-* `warning`
-* `error`
-* `write`
-* `writeOnServer`
+  * `info`
+  * `warning`
+  * `error`
+  * `write`
+  * `writeOnServer`
 
 где `info`, `warning`, `error` - это методы-обёртки для повседневной работы с минимумом параметров,
 метод `writeOnServer` позволяет гарантировано записать сообщение в Event Log на сервере `AOS`,
